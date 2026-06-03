@@ -451,6 +451,26 @@ const ARTIFACTS = ${JSON.stringify(artifacts, null, 2)};
 
   fs.writeFileSync(OUTPUT_PATH, output, 'utf8');
   console.log(`\n✅ Generated ${OUTPUT_PATH}`);
+
+  syncCounts(totalLessons, phases.length, artifacts.length);
+}
+
+// ─── Keep marketing counts in sync (single source of truth = this build) ──
+function syncCounts(lessons, phaseCount, outputs) {
+  const targets = ['index.html', 'catalog.html', 'lesson.html', 'prereqs.html', 'cmdpalette.js'];
+  for (const f of targets) {
+    const p = path.join(__dirname, f);
+    if (!fs.existsSync(p)) continue;
+    const before = fs.readFileSync(p, 'utf8');
+    const after = before
+      .replace(/\b\d+( AI engineering)? lessons\b/g, `${lessons}$1 lessons`)
+      .replace(/\b\d+ phases\b/g, `${phaseCount} phases`)
+      .replace(/\b\d+ outputs\b/g, `${outputs} outputs`);
+    if (after !== before) {
+      fs.writeFileSync(p, after, 'utf8');
+      console.log(`   synced counts in ${f}`);
+    }
+  }
 }
 
 build();
