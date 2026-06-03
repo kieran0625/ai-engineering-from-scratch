@@ -56,3 +56,6 @@ mlruns/
 
 .link-cache.json
 .claude/
+.python-version
+main.py
+pyproject.toml
