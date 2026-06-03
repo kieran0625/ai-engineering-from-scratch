@@ -64,5 +64,14 @@
   "phases/03-deep-learning-core/11-intro-to-pytorch/docs/en.md": "ec3d068a114b029198f8686ac8a4f67d15ac1d8b778511504997a5b541b1edc2",
   "phases/03-deep-learning-core/12-intro-to-jax/docs/en.md": "3f37b2485fe45457308cfcc941f99a463fefbaa57da06e12cbcb0299721d39cb",
   "phases/03-deep-learning-core/13-debugging-neural-networks/docs/en.md": "ded9bc2b61d67b47bd71b0df04f4f555f7bbd6c324aa8ed3632730778bcb9a0a",
-  "phases/04-computer-vision/01-image-fundamentals/docs/en.md": "ba16496446ac10eb6390eff6405a1e4a708e44c91c6f62937f1dddd4995aa790"
+  "phases/04-computer-vision/01-image-fundamentals/docs/en.md": "ba16496446ac10eb6390eff6405a1e4a708e44c91c6f62937f1dddd4995aa790",
+  "phases/04-computer-vision/02-convolutions-from-scratch/docs/en.md": "4e868c3c8ae45f6672ddb59bd642209c58eda6ed6568b4b7c0f8feed53afb5c9",
+  "phases/04-computer-vision/03-cnns-lenet-to-resnet/docs/en.md": "f2f33f85787af7f568fc82cd099cb956a0ade4ab5255fefda6a30ef9e4a321ff",
+  "phases/04-computer-vision/04-image-classification/docs/en.md": "88fba3cf33790ba402309312f8a3b2c33d289ca799db9be387bc92a5010a28f0",
+  "phases/04-computer-vision/06-object-detection-yolo/docs/en.md": "c1756cb66481d29f1787606bf256ec7ca4791dd57b46fcabc8c7772d4c11a2f4",
+  "phases/04-computer-vision/07-semantic-segmentation-unet/docs/en.md": "5b4cbf117934f55ec28a36c1ae319d94bd56ee41bf702dd2dfe0e35004ba3ab5",
+  "phases/04-computer-vision/08-instance-segmentation-mask-rcnn/docs/en.md": "3bf1789159472ee881ff973c4e7641616020535503c5e64e7374f318b487f89b",
+  "phases/04-computer-vision/09-image-generation-gans/docs/en.md": "8f5eb993caacbe021b43cb9d4aa72b5b363c82b02325a431a9eea9ca3d91d98e",
+  "phases/04-computer-vision/10-image-generation-diffusion/docs/en.md": "312cba8d16dacb1a1af11d41aa7252d4bc28d0d9e1266cf8bf9cf5fff7db7b98",
+  "phases/04-computer-vision/11-stable-diffusion/docs/en.md": "daf87885054a5be4726c1688529fbd8e0e1588b050c9c5d69d74302e71d38361"
 }
