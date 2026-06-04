@@ -92,6 +92,21 @@ def count_fences(text: str) -> int:
     return sum(1 for line in text.splitlines() if re.match(r"^\s*(```|~~~)", line))
 
 
+def valid_existing_translation(en_path: Path, zh_path: Path) -> bool:
+    if not zh_path.exists():
+        return False
+    try:
+        source = en_path.read_text(encoding="utf-8")
+        translated = zh_path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return False
+    if not translated.strip():
+        return False
+    if "ZXQPROTECTED" in translated:
+        return False
+    return count_fences(source) == count_fences(translated)
+
+
 def translate(client: OpenAI, model: str, relative_path: str, source: str, retries: int = 3) -> str:
     protected_source, protected = protect_source(source)
     last_error: Exception | None = None
@@ -137,7 +152,7 @@ def should_skip(en_path: Path, zh_path: Path, done: dict[str, str], overwrite: b
     source = en_path.read_text(encoding="utf-8")
     digest = sha256_text(source)
     rel = en_path.relative_to(ROOT).as_posix()
-    skip = not overwrite and zh_path.exists() and done.get(rel) == digest
+    skip = not overwrite and valid_existing_translation(en_path, zh_path)
     return skip, source, digest
 
 
@@ -155,7 +170,9 @@ def translate_one(client: OpenAI, model: str, en_path: Path, overwrite: bool, re
     if "ZXQPROTECTED" in translated:
         raise RuntimeError(f"unrestored placeholder remains for {rel}")
 
-    zh_path.write_text(translated, encoding="utf-8", newline="\n")
+    tmp_path = zh_path.with_suffix(".md.tmp")
+    tmp_path.write_text(translated, encoding="utf-8", newline="\n")
+    tmp_path.replace(zh_path)
     return rel, digest, overwrite
 
 
