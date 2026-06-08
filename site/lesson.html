@@ -6,6 +6,7 @@
   <title>Lesson - AI Engineering from Scratch</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23fafaf5'/><rect x='2' y='2' width='28' height='28' fill='none' stroke='%233553ff' stroke-width='1.2'/><text x='6' y='22' font-size='14' font-family='monospace' fill='%233553ff'>AI</text></svg>">
   <meta name="description" content="A lesson from the AI Engineering from Scratch curriculum. 503 lessons across 20 phases, four languages, every algorithm built from raw math.">
+  <link rel="canonical" href="https://aiengineeringfromscratch.com/lesson.html">
   <meta property="og:title" content="AI Engineering from Scratch · Lesson">
   <meta property="og:description" content="503 lessons. 20 phases. Write the backprop, the tokenizer, the attention mechanism, and the agent loop by hand.">
   <meta property="og:image" content="https://aiengineeringfromscratch.com/og-image.png?v=3">
@@ -1629,6 +1630,8 @@
   <script src="progress.js?v=20260525a"></script>
   <script src="header.js?v=20260525a" defer></script>
   <script src="cmdpalette.js?v=20260525a" defer></script>
+  <script src="figures.js?v=20260607a"></script>
+  <script src="lesson-figures.js?v=20260607a"></script>
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
     mermaid.initialize({
@@ -1870,6 +1873,64 @@
         el.innerHTML = '<div class="lesson-error"><h2>' + title + '</h2><p>' + msg + '</p><a href="index.html" class="btn btn-primary">Back to Home</a></div>';
       }
 
+      function lessonDescription(md) {
+        var lines = md.split(/\r?\n/);
+        for (var i = 0; i < lines.length; i++) {
+          var t = lines[i].trim();
+          if (t.indexOf('>') === 0) return t.replace(/^>\s*/, '').replace(/[*_`]/g, '').slice(0, 200);
+        }
+        for (var j = 0; j < lines.length; j++) {
+          var p = lines[j].trim();
+          if (p && p[0] !== '#' && p[0] !== '>' && p[0] !== '|' && p[0] !== '`' && p.indexOf('**') !== 0) {
+            return p.replace(/[*_`]/g, '').slice(0, 200);
+          }
+        }
+        return '503 lessons. 20 phases. Build it from raw math, by hand.';
+      }
+
+      // Client-side per-lesson SEO. Robust indexing comes with build-time
+      // prerender (next PR); this covers JS-executing crawlers + correct tabs.
+      function updateLessonSeo(title, md) {
+        var ORIGIN = 'https://aiengineeringfromscratch.com';
+        var path = new URLSearchParams(location.search).get('path') || '';
+        var url = ORIGIN + '/lesson.html?path=' + path;
+        var desc = lessonDescription(md);
+        var fullTitle = title + ' · AI Engineering from Scratch';
+        var set = function (sel, val) { var m = document.querySelector(sel); if (m) m.setAttribute('content', val); };
+
+        var canon = document.querySelector('link[rel="canonical"]');
+        if (canon) canon.setAttribute('href', url);
+        set('meta[name="description"]', desc);
+        set('meta[property="og:title"]', fullTitle);
+        set('meta[property="og:description"]', desc);
+        set('meta[name="twitter:title"]', fullTitle);
+        set('meta[name="twitter:description"]', desc);
+        var ogu = document.querySelector('meta[property="og:url"]');
+        if (!ogu) { ogu = document.createElement('meta'); ogu.setAttribute('property', 'og:url'); document.head.appendChild(ogu); }
+        ogu.setAttribute('content', url);
+
+        var prev = document.getElementById('lessonJsonLd');
+        if (prev) prev.remove();
+        var ld = {
+          '@context': 'https://schema.org',
+          '@graph': [
+            { '@type': 'LearningResource', name: title, description: desc, url: url,
+              inLanguage: 'en', isAccessibleForFree: true,
+              isPartOf: { '@type': 'Course', name: 'AI Engineering from Scratch', url: ORIGIN } },
+            { '@type': 'BreadcrumbList', itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: ORIGIN },
+              { '@type': 'ListItem', position: 2, name: 'Catalog', item: ORIGIN + '/catalog.html' },
+              { '@type': 'ListItem', position: 3, name: title, item: url }
+            ] }
+          ]
+        };
+        var s = document.createElement('script');
+        s.type = 'application/ld+json';
+        s.id = 'lessonJsonLd';
+        s.textContent = JSON.stringify(ld);
+        document.head.appendChild(s);
+      }
+
       function renderLesson(md) {
         var el = document.getElementById('lessonContent');
         var html = parseMd(md);
@@ -1878,9 +1939,11 @@
         el.innerHTML = '<article class="lesson-article">' + html + '</article>';
 
         document.title = extractTitle(md) + ' - AI Engineering from Scratch';
+        updateLessonSeo(extractTitle(md), md);
 
         initCodeCopy();
         renderMermaidBlocks();
+        if (window.mountLessonFigures) window.mountLessonFigures(el);
         renderAIPanels();
         buildTOC();
 
@@ -2183,7 +2246,9 @@
             if (line.match(/^```\s*$/)) {
               inCodeBlock = false;
               var raw = codeLines.join('\n');
-              if (codeLang === 'mermaid') {
+              if (codeLang === 'figure') {
+                out += '<div class="lesson-figure" data-figure="' + escapeHtml(raw.trim()) + '"></div>';
+              } else if (codeLang === 'mermaid') {
                 mermaidBlocks++;
                 out += '<div class="mermaid-container">';
                 out += '<div class="mermaid-block" data-mermaid-index="' + mermaidBlocks + '">';
