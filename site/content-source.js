@@ -8,8 +8,6 @@
 (function () {
   'use strict';
 
-  var REPO_RAW = 'https://raw.githubusercontent.com/rohitg00/ai-engineering-from-scratch/';
-
   function isLocal() {
     var host = window.location.hostname;
     return host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
@@ -19,10 +17,26 @@
     return String(path || '').replace(/^\/+/, '').replace(/\.\.(?:\/|\\)/g, '');
   }
 
+  function hasDotSegment(value) {
+    return String(value || '').split('/').some(function (segment) {
+      return segment === '.' || segment === '..';
+    });
+  }
+
   function rawRepoUrl(path) {
     var safe = clean(path);
-    var ref = window.__AIFS_REF || 'main';
-    return REPO_RAW + ref + '/' + safe;
+    var configured = window.__AIFS_SOURCE || {};
+    var owner = /^[A-Za-z0-9-]+$/.test(configured.owner || '') ? configured.owner : 'rohitg00';
+    var repo = /^[A-Za-z0-9_.-]+$/.test(configured.repo || '') && !hasDotSegment(configured.repo)
+      ? configured.repo
+      : 'ai-engineering-from-scratch';
+    var fallbackRevision = /^[A-Za-z0-9._/-]+$/.test(window.__AIFS_REF || '') && !hasDotSegment(window.__AIFS_REF)
+      ? window.__AIFS_REF
+      : 'main';
+    var revision = /^[A-Za-z0-9._/-]+$/.test(configured.revision || '') && !hasDotSegment(configured.revision)
+      ? configured.revision
+      : fallbackRevision;
+    return 'https://raw.githubusercontent.com/' + owner + '/' + repo + '/' + revision + '/' + safe;
   }
 
   function repoUrl(path) {
@@ -98,10 +112,53 @@
     });
   }
 
+  function mergeLessonOutputs(lessonPath, directoryEntries, artifacts) {
+    var lesson = clean(lessonPath).replace(/\/+$/, '');
+    var liveEntries = Array.isArray(directoryEntries) ? directoryEntries : [];
+    if (!lesson) return liveEntries.slice();
+
+    var prefix = lesson + '/outputs/';
+    var selected = (Array.isArray(artifacts) ? artifacts : []).filter(function (artifact) {
+      var artifactLesson = clean(artifact && artifact.lessonPath).replace(/\/+$/, '');
+      var artifactFile = clean(artifact && artifact.file).replace(/\/+$/, '');
+      return artifactLesson === lesson && artifactFile.indexOf(prefix) === 0;
+    });
+    var artifactByPath = Object.create(null);
+    selected.forEach(function (artifact, index) {
+      artifactByPath[clean(artifact.file).replace(/\/+$/, '')] = index;
+      if (artifact.bundlePath) {
+        artifactByPath[clean(artifact.bundlePath).replace(/\/+$/, '')] = index;
+      }
+    });
+
+    var seen = Object.create(null);
+    var merged = [];
+    liveEntries.forEach(function (entry) {
+      var entryPath = clean(entry && entry.path).replace(/\/+$/, '');
+      if (!entryPath && entry && entry.name) {
+        entryPath = prefix + clean(entry.name).replace(/\/+$/, '');
+      }
+      var index = Object.prototype.hasOwnProperty.call(artifactByPath, entryPath)
+        ? artifactByPath[entryPath]
+        : -1;
+      if (index < 0) {
+        merged.push(entry);
+      } else if (!seen[index]) {
+        merged.push(selected[index]);
+        seen[index] = true;
+      }
+    });
+    selected.forEach(function (artifact, index) {
+      if (!seen[index]) merged.push(artifact);
+    });
+    return merged;
+  }
+
   window.AIFSContentSource = {
     isLocal: isLocal,
     repoUrl: repoUrl,
     rawRepoUrl: rawRepoUrl,
     localDirectoryFiles: localDirectoryFiles,
+    mergeLessonOutputs: mergeLessonOutputs,
   };
 }());
