@@ -459,18 +459,23 @@ function writeMarkdown(file, { name, description, version }) {
 test('shared site asset families use the expected cache keys on every page', () => {
   const release = '20260822a';
   const styleRelease = '20260824a';
-  const navigationRelease = '20260829b';
+  const navigationRelease = '20260927a';
   const narrationRelease = '20260829a';
+  const homepageRelease = '20260927a';
   const pages = [
     'about.html',
     'assessment.html',
     'catalog.html',
     'certification.html',
     'certifications.html',
+    'contact.html',
+    'developer.html',
     'glossary.html',
     'index.html',
     'lesson.html',
     'prereqs.html',
+    'privacy.html',
+    'sponsors.html',
   ];
   const sourceFor = page => fs.readFileSync(path.join(__dirname, page), 'utf8');
   const versionFor = (source, asset) => {
@@ -484,10 +489,16 @@ test('shared site asset families use the expected cache keys on every page', () 
     const source = sourceFor(page);
     assert.equal(versionFor(source, 'style.css'), styleRelease, `${page} has stale style.css`);
     assert.equal(versionFor(source, 'progress.js'), release, `${page} has stale progress.js`);
-    assert.equal(versionFor(source, 'header.js'), navigationRelease, `${page} has stale header.js`);
   }
 
-  assert.equal(versionFor(sourceFor('index.html'), 'app.js'), release);
+  for (const page of fs.readdirSync(__dirname).filter(name => name.endsWith('.html'))) {
+    const source = sourceFor(page);
+    if (source.includes('header.js')) {
+      assert.equal(versionFor(source, 'header.js'), navigationRelease, `${page} has stale header.js`);
+    }
+  }
+
+  assert.equal(versionFor(sourceFor('index.html'), 'app.js'), homepageRelease);
   assert.equal(versionFor(sourceFor('prereqs.html'), 'roadmap.css'), release);
   assert.equal(versionFor(sourceFor('prereqs.html'), 'roadmap.js'), release);
   assert.match(
@@ -518,7 +529,19 @@ test('build-time SEO manifests cover every readable lesson and expose canonical 
   );
   assert.deepEqual(Object.keys(lessonManifest.lessons).sort(), expectedPaths);
   assert.equal(certificationManifest.version, 1);
-  assert.equal(Object.keys(certificationManifest.tracks).length, 4);
+  assert.deepEqual(
+    certifications.programs.map(program => program.id).sort(),
+    ['claude-certifications', 'mcpa-certification']
+  );
+  const programsById = new Map(certifications.programs.map(program => [program.id, program]));
+  for (const track of certifications.tracks) assert.ok(programsById.has(track.programId), `${track.id} has no program`);
+  for (const lesson of Object.values(certifications.lessonsByPath)) {
+    assert.ok(programsById.has(lesson.programId), `${lesson.path} has no program`);
+    assert.ok(lesson.path.startsWith(`${programsById.get(lesson.programId).directory}/lessons/`));
+  }
+  assert.ok(certifications.tracks.some(track => track.id === 'mcpa-f'));
+  assert.ok(expectedCertificationPaths.some(lessonPath => lessonPath.startsWith('certifications/mcpa/lessons/')));
+  assert.equal(Object.keys(certificationManifest.tracks).length, certifications.tracks.length);
 
   function inspectKeys(value) {
     if (!value || typeof value !== 'object') return;
@@ -601,7 +624,7 @@ test('build-time SEO manifests cover every readable lesson and expose canonical 
 
   const trackEntries = Object.values(certificationManifest.tracks);
   for (const field of ['title', 'description', 'excerpt', 'canonicalUrl']) {
-    assert.equal(new Set(trackEntries.map(track => track[field])).size, 4, `track ${field} values are not unique`);
+    assert.equal(new Set(trackEntries.map(track => track[field])).size, trackEntries.length, `track ${field} values are not unique`);
   }
   for (const track of trackEntries) {
     assert.ok(track.seoTitle.length <= 60);
@@ -618,7 +641,14 @@ test('build-time SEO manifests cover every readable lesson and expose canonical 
   const catalogDiscovery = renderCatalogDiscovery(phases, lessonManifest);
   const certificationDiscovery = renderCertificationDiscovery(certifications, certificationManifest);
   assert.equal((catalogDiscovery.match(/href="lesson\?path=/g) || []).length, expectedCoursePaths.length);
-  assert.equal((certificationDiscovery.match(/href="certification\?id=/g) || []).length, 4);
+  assert.equal((certificationDiscovery.match(/href="certification\?id=/g) || []).length, certifications.tracks.length);
+  assert.equal(
+    (certificationDiscovery.match(/data-generated-discovery="certification-program"/g) || []).length,
+    certifications.programs.length
+  );
+  for (const program of certifications.programs) {
+    assert.ok(certificationDiscovery.includes(program.learnerGuidePath), `${program.id} discovery lacks its learner guide`);
+  }
   assert.ok((certificationDiscovery.match(/href="lesson\?path=/g) || []).length >= expectedCertificationPaths.length);
   assert.doesNotMatch(catalogDiscovery + certificationDiscovery, /(?:lesson|certification)\.html\?/);
 
@@ -2281,4 +2311,58 @@ test('MCP registry drift quarantines and deactivates only the drifted release', 
   assert.equal(result.evidence.rollbackCandidate.activeRouting, false);
   assert.equal(result.evidence.rollbackCandidate.activationRequires, 'explicit rollback decision');
   assert.match(result.verdict, /separately admitted, healthy 3\.9\.2 release/i);
+});
+
+test('lesson page includes completion panel and button contract', () => {
+  const lessonHtml = fs.readFileSync(path.join(__dirname, 'lesson.html'), 'utf8');
+  assert.match(lessonHtml, /renderLessonCompletionPanel\(container\)/);
+  assert.match(lessonHtml, /function mountLessonCompletionPanel/);
+  assert.match(lessonHtml, /function renderLessonCompletionPanel/);
+  assert.match(lessonHtml, /function syncLessonCompletionUi/);
+  assert.match(lessonHtml, /Complete Lesson/);
+  assert.match(lessonHtml, /Completed ✓/);
+  assert.match(lessonHtml, /Mark as incomplete/);
+  assert.match(lessonHtml, /\.ai-panel--complete/);
+  assert.match(lessonHtml, /\.lesson-complete-btn/);
+  assert.match(lessonHtml, /\.lesson-complete-btn\.is-completed/);
+  assert.match(lessonHtml, /\.lesson-complete-btn:disabled\.is-completed/);
+  assert.match(lessonHtml, /\.lesson-unmark-btn/);
+  assert.match(lessonHtml, /completeBtn\.disabled = isDone/);
+  assert.doesNotMatch(lessonHtml, /completeBtn\.setAttribute\('aria-pressed'/);
+  assert.match(lessonHtml, /statusEl\.setAttribute\('data-state', 'complete'\)/);
+  assert.match(lessonHtml, /statusEl\.setAttribute\('data-state', 'incomplete'\)/);
+  assert.match(lessonHtml, /statusState !== \(isDone \? 'complete' : 'incomplete'\)/);
+
+  const uiStrings = JSON.parse(fs.readFileSync(path.join(__dirname, 'ui-strings.json'), 'utf8'));
+  for (const label of [
+    'Complete Lesson',
+    'Mark this lesson as completed to update your progress and continue through the curriculum.',
+    'Completed ✓',
+    'Mark as incomplete',
+    'Lesson completed',
+    'Mark lesson as complete',
+    'Lesson marked as completed. Progress updated.',
+    'Lesson marked as incomplete.',
+  ]) {
+    assert.ok(uiStrings.keys.includes(label), `${label} is missing from ui-strings.json`);
+    for (const [lang, pinned] of Object.entries(uiStrings.overrides)) {
+      assert.ok(pinned[label], `${label} has no ${lang} translation in ui-strings.json`);
+    }
+  }
+
+  const runtime = loadProgressRuntime();
+  const lesson = 'phases/01-math-foundations/01-scalar-derivatives';
+  assert.equal(runtime.api.isLessonComplete(lesson), false);
+
+  runtime.api.markLessonComplete(lesson, 'learner');
+  assert.equal(runtime.api.isLessonComplete(lesson), true);
+  const firstCompletedAt = runtime.api.getLessonProgress(lesson).completedAt;
+  assert.ok(firstCompletedAt > 0);
+
+  runtime.api.markLessonComplete(lesson, 'learner');
+  assert.equal(runtime.api.getLessonProgress(lesson).completedAt, firstCompletedAt);
+
+  runtime.api.unmarkLessonComplete(lesson);
+  assert.equal(runtime.api.isLessonComplete(lesson), false);
+  assert.equal(runtime.api.getLessonProgress(lesson).completedAt, null);
 });
