@@ -49,7 +49,7 @@ xcode-select --install
 brew install git curl wget
 
 # Ubuntu/Debian
-sudo apt update && sudo apt install -y build-essential git curl wget
+sudo apt update && sudo apt install -y build-essential git curl wget unzip
 
 # Windows (use WSL2)
 wsl --install -d Ubuntu-24.04
@@ -95,6 +95,8 @@ npm install -g pnpm
 
 node -e "console.log('Node', process.version)"
 ```
+
+Bộ cài đặt fnm kiểm tra cho `unzip`đầu tiên và ra đi với `Not installing fnm due to missing dependencies.`khi nó không có: trên Linux nó mở gói một tệp zip, trên macOS nó cài đặt thông qua Homebrew. macOS tàu `unzip`; Ubuntu, Debian, và WSL2 lấy nó từ dòng apt bước 1 (`sudo apt install -y unzip`nếu bạn bỏ qua bước đó).
 
 **macOS / Apple Silicon (M1/M2/M3/M4):**Nếu người cài đặt dừng lại với `Error: Cannot install under Rosetta 2 in ARM default prefix (/opt/homebrew)`, thiết bị của bạn đang chạy dưới Rosetta 2 (`arch`dấu vân tay`i386`(Tạm dịch: Homebrew là một bộ phận tự nhiên của arm64.`fnm install 22`- Có thể là:
 
