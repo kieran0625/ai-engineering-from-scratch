@@ -49,7 +49,7 @@ xcode-select --install
 brew install git curl wget
 
 # Ubuntu/Debian
-sudo apt update && sudo apt install -y build-essential git curl wget
+sudo apt update && sudo apt install -y build-essential git curl wget unzip
 
 # Windows (use WSL2)
 wsl --install -d Ubuntu-24.04
@@ -95,6 +95,8 @@ npm install -g pnpm
 
 node -e "console.log('Node', process.version)"
 ```
+
+L' installateur de l' fnm vérifie si `unzip`Le premier et le dernier.`Not installing fnm due to missing dependencies.`quand il est absent: sur Linux il déballe une archive zip, sur macOS il installe via Homebrew.`unzip`; Ubuntu, Debian et WSL2 le récupèrent à partir de la ligne apt étape 1 (`sudo apt install -y unzip`si vous avez sauté cette étape).
 
 **macOS / Apple Silicon (M1/M2/M3/M4):**Si l' installateur arrête de`Error: Cannot install under Rosetta 2 in ARM default prefix (/opt/homebrew)`Votre terminal est sous Rosetta 2 (`arch`des empreintes`i386`Installez l'arm64 à force de fnm, branchez-le dans votre coquille, puis réalisez les commandes ci-dessus à partir de`fnm install 22`- Le numéro de la liste:
 
