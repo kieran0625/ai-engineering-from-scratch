@@ -1,7 +1,7 @@
 {
   "phases/16-multi-agent-and-swarms/01-why-multi-agent/docs/en.md": "43afcd0c4577433cf152e33711cdee7dc0a0625a37b01a3d30c1588d52dd952e",
   "phases/16-multi-agent-and-swarms/02-fipa-acl-heritage/docs/en.md": "234056963823e7433e031e18b2d7513c4dfbb778753155bd869af6bbda0df241",
-  "phases/16-multi-agent-and-swarms/03-communication-protocols/docs/en.md": "d5d9ba70c17739fb06beac988da30c61f5f050f5fb19004b4c4e6f293e2ac126",
+  "phases/16-multi-agent-and-swarms/03-communication-protocols/docs/en.md": "736ef386c6e6899469883d7b0183f2a490374c1c6d5cbc9ab9fa6b4649de562b",
   "phases/16-multi-agent-and-swarms/04-primitive-model/docs/en.md": "3b17765b0944dce19879fea690146703bead63f48a52d2d7d4c5667ac84b166f",
   "phases/16-multi-agent-and-swarms/05-supervisor-orchestrator-pattern/docs/en.md": "f21e9026c0cf79b00c0027cf0391ff2dc2b760ec28a4a7989f46d5fc4d37ef50",
   "phases/16-multi-agent-and-swarms/06-hierarchical-architecture/docs/en.md": "a69fd17a7a64d415f29b9a69a73a7219460ded9a316f05e44c2802be68a611f6",
@@ -10,7 +10,7 @@
   "phases/16-multi-agent-and-swarms/09-parallel-swarm-networks/docs/en.md": "2dde437ce309db7e43e69e34bb091b8ca019d5e4c55293e582f7497776dd21c9",
   "phases/16-multi-agent-and-swarms/10-group-chat-speaker-selection/docs/en.md": "cb20c86f615eac8c5d965b4469eb737401e21b92e94ad8360fdac07d144a0c03",
   "phases/16-multi-agent-and-swarms/11-handoffs-and-routines/docs/en.md": "87bf3b0e0988f7b46dfb666e546210d339b7cd640e840cb49152a19e1521674b",
-  "phases/16-multi-agent-and-swarms/12-a2a-protocol/docs/en.md": "88e30cad22423a230c73859d2151de5eaddc78936b5a11c840ddf753d2fa284c",
+  "phases/16-multi-agent-and-swarms/12-a2a-protocol/docs/en.md": "64266b28fc18ceb78fc5bc7d7b0902de21e051cdf4631ebb1574412c24d4cdd2",
   "phases/16-multi-agent-and-swarms/13-shared-memory-blackboard/docs/en.md": "7e7a61e06f94de6a99a218705ffcb297058136ace1c363d03e0dce8896a9b8e8",
   "phases/16-multi-agent-and-swarms/14-consensus-and-bft/docs/en.md": "6dc4dab48994111b84688ebf3d53c594380464634f725fe46f09aa4ce2b745bd",
   "phases/16-multi-agent-and-swarms/15-voting-debate-topology/docs/en.md": "d7696a6e00496b73229ba5b9344d386a790acfccf4211aab16f5acf433af2f1e",
