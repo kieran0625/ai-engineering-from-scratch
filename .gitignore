@@ -17,6 +17,7 @@ build/
 node_modules/
 .next/
 out/
+!manuals/*/capture/out/
 .vercel
 
 target/
@@ -90,3 +91,13 @@ i18n/*/.cache/
 i18n/*/.translate-cache.json
 i18n/*/ui.json
 site/langs.js
+
+!.claude/skills/build-project/
+!.claude/skills/build-project/**
+site/projects-data.js
+site/project-content/
+site/manual-*.html
+site/manuals-data.js
+site/manuals.html
+
+!manuals/*/capture/out/*.log

@@ -17,7 +17,6 @@
   <a href="../../i18n/ar/README.md">العربية</a> ·
   <a href="../../i18n/ru/README.md">Русский</a> ·
   <a href="../../i18n/tr/README.md">Türkçe</a>
-  <br><sub>Translated landing pages, committed to the repo. English is canonical; lesson pages are machine-translated on the <code>translations</code> branch. See <a href="../../docs/i18n.md">docs/i18n.md</a>.</sub>
 </p>
 
 <p align="center">
@@ -26,9 +25,23 @@
   <a href="#contents"><img src="https://img.shields.io/badge/phases-20-3553ff?style=flat-square&labelColor=fafaf5" alt="20 phases"></a>
   <a href="https://github.com/rohitg00/ai-engineering-from-scratch/stargazers"><img src="https://img.shields.io/github/stars/rohitg00/ai-engineering-from-scratch?style=flat-square&labelColor=fafaf5&color=3553ff" alt="GitHub stars"></a>
   <a href="https://aiengineeringfromscratch.com"><img src="https://img.shields.io/badge/web-aiengineeringfromscratch.com-3553ff?style=flat-square&labelColor=fafaf5" alt="Website"></a>
+  <p align="center">
+ <a href="https://www.star-history.com/rohitg00/ai-engineering-from-scratch">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/badge?repo=rohitg00/ai-engineering-from-scratch&type=rank&theme=dark" /><source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/badge?repo=rohitg00/ai-engineering-from-scratch&type=rank" /><img alt="Star History Rank" src="https://api.star-history.com/badge?repo=rohitg00/ai-engineering-from-scratch&type=rank" /></picture> <picture><source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/badge?repo=rohitg00/ai-engineering-from-scratch&type=trending&theme=dark" /><source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/badge?repo=rohitg00/ai-engineering-from-scratch&type=trending" /><img alt="GitHub Trending Repository of the Day" src="https://api.star-history.com/badge?repo=rohitg00/ai-engineering-from-scratch&type=trending" /></picture>
+ </a>
+</p>
 </p>
 
-## From the creator of [Agent Memory - #1 Persistent memory ⭐](https://github.com/rohitg00/agentmemory) <a href="https://github.com/rohitg00/agentmemory/stargazers"><img src="https://img.shields.io/github/stars/rohitg00/agentmemory?style=flat-square&labelColor=fafaf5&color=3553ff" alt="GitHub stars"></a> which naturally works with any agents or chat assistants.
+### الرعاة
+
+<p align="center">
+  <a href="https://serpapi.com/ai-engineering-from-scratch"><picture><source media="(min-width: 768px)" srcset="../../assets/sponsors/serpapi-banner-compact.png" width="48%"><img src="../../assets/sponsors/serpapi-banner-compact.png" alt="SerpApi. واجهة API للبحث على الويب لتطبيقات الذكاء الاصطناعي، متاحة بصيغتي Markdown وJSON لأي تكامل." width="440"></picture></a>
+  <a href="https://nitrostack.ai/referral/aiengineeringfromscratch"><picture><source media="(min-width: 768px)" srcset="../../assets/sponsors/nitrostack-banner-equal.png" width="48%"><img src="../../assets/sponsors/nitrostack-banner-equal.png" alt="NitroStack. Build and deploy your MCP app in 10 minutes. Get your product into ChatGPT and Claude marketplaces with free cloud deployment." width="440"></picture></a>
+</p>
+
+<p align="center">
+  <sub><span>دعمكم يُبقي كل درس مجانيًا ومفتوح المصدر.</span> <a href="#supporters">عرض جميع الداعمين</a> · <a href="../../SPONSORS.md">Become a sponsor</a></sub>
+</p>
 
 ```text
 ░░░▒▒▒░░░▒▒▒░░░▒▒▒░░░▒▒▒░░░▒▒▒░░░▒▒▒░░░▒▒▒░░░▒▒▒░░░▒▒▒░░░▒▒▒░░░▒▒▒░░░▒▒▒░░░▒▒▒░░░▒▒▒░░░▒▒▒
@@ -67,20 +80,6 @@ Not sure where you fit? Use the [`start-learning` placement tutor](../../skills/
 or the [website prerequisites guide](https://aiengineeringfromscratch.com/prereqs.html).
 
 Compare four core domains and six career routes in the [AI Engineering Learning Paths](https://aiengineeringfromscratch.com/learning-paths.html).
-
-### الرعاة
-
-<a href="https://serpapi.com/ai-engineering-from-scratch">
-  <img align="left" src="../../assets/sponsors/serpapi-banner.png" alt="SerpApi. واجهة API للبحث على الويب لتطبيقات الذكاء الاصطناعي، متاحة بصيغتي Markdown وJSON لأي تكامل." width="600">
-</a>
-
-<p><br><b>شكرًا لرعاتنا.</b></p>
-<p>دعمكم يُبقي كل درس مجانيًا ومفتوح المصدر.</p>
-<p>
-  <a href="#supporters">عرض جميع الداعمين</a><br>
-  <a href="../../SPONSORS.md">Become a sponsor</a>
-  <br clear="all">
-</p>
 
 ### Use every lesson the same way
 

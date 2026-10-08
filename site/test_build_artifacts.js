@@ -313,6 +313,7 @@ function loadFigureRuntime({ reducedMotion = false } = {}) {
       disabled: false,
       hidden: false,
       dataset: {},
+      style: {},
       attributes: {},
       children: [],
       parentNode: null,
@@ -1508,7 +1509,7 @@ test('homepage preserves live GitHub CTAs and the motion-aware learner marquee',
   assert.match(homepage, /@media \(min-width: 601px\) and \(max-width: 1279px\) \{[\s\S]*?\.manual-masthead\.container\s*\{[\s\S]*?padding-left: clamp\(24px, 2\.5vw, 32px\);[\s\S]*?padding-right: clamp\(24px, 2\.5vw, 32px\);/);
   assert.ok(wideMasthead, 'wide-screen masthead layout is missing');
   assert.match(wideMasthead[0], /grid-template-columns: minmax\(0, 1fr\) minmax\(360px, 400px\)/);
-  assert.match(wideMasthead[0], /"title figure"/);
+  assert.match(wideMasthead[0], /"title curiosity"/);
   assert.match(wideMasthead[0], /"install figure"/);
   assert.match(wideMasthead[0], /\.masthead-figure\s*\{[\s\S]*?position: static;[\s\S]*?grid-area: figure/);
   assert.match(homepage, /\.masthead-cta\s*\{\s*display: grid;\s*grid-template-columns: 1fr/);
@@ -1574,12 +1575,13 @@ test('reader prose stays ragged-right without browser-inserted hyphens', () => {
   });
 });
 
-test('shared header progressively compacts without hiding GitHub stars or search', () => {
+test('shared header keeps its menu at desktop widths without hiding GitHub stars or search', () => {
   const headerSource = fs.readFileSync(path.join(__dirname, 'header.js'), 'utf8');
   const styles = fs.readFileSync(path.join(__dirname, 'style.css'), 'utf8');
   const movableTools = headerSource.match(/function isMovableTool\(child\) \{([\s\S]*?)\n    \}/);
 
-  assert.match(headerSource, /var COMPACT_HEADER_QUERY = '\(max-width: 1400px\)'/);
+  assert.doesNotMatch(headerSource, /COMPACT_HEADER_QUERY|restoreDesktopTools/);
+  assert.match(headerSource, /nav\.hidden = !open;/);
   assert.match(headerSource, /var NARROW_HEADER_QUERY = '\(max-width: 820px\)'/);
   assert.match(headerSource, /priorityNav\.className = 'header-priority-nav'/);
   assert.match(headerSource, /label !== 'contents' && label !== 'catalog' && label !== 'learning paths'/);
@@ -1606,8 +1608,8 @@ test('shared header progressively compacts without hiding GitHub stars or search
 
   assert.match(styles, /\.header-inner\s*\{[\s\S]*?width: 100%;[\s\S]*?max-width: 1360px;[\s\S]*?min-width: 0;/);
   assert.match(styles, /\.header-nav,\s*\n\.header-priority-nav\s*\{[\s\S]*?white-space: nowrap;/);
-  assert.match(styles, /@media \(max-width: 1480px\) and \(min-width: 1401px\)/);
-  assert.match(styles, /@media \(max-width: 1400px\) \{[\s\S]*?\.header-priority-nav\s*\{[\s\S]*?\.header-inner > \.header-github[\s\S]*?\.header-inner > \.search-toggle[\s\S]*?\.header-nav\s*\{[\s\S]*?width: min\(360px, calc\(100vw - 32px\)\);[\s\S]*?overflow-y: auto;/);
+  assert.doesNotMatch(styles, /@media \(max-width: (?:1400|1480)px\)/);
+  assert.match(styles, /\.header-menu-toggle\s*\{\s*order: 5;\s*display: inline-flex;[\s\S]*?\.header-priority-nav\s*\{[\s\S]*?\.header-inner > \.header-github[\s\S]*?\.header-inner > \.search-toggle[\s\S]*?\.header-nav\s*\{[\s\S]*?width: min\(360px, calc\(100vw - 32px\)\);[\s\S]*?overflow-y: auto;/);
   assert.match(styles, /@media \(max-width: 820px\) \{[\s\S]*?\.header-priority-nav\s*\{\s*display: none;[\s\S]*?\.header-inner > \.header-github[\s\S]*?\.header-inner > \.search-toggle/);
   assert.match(styles, /@media \(max-width: 480px\) \{[\s\S]*?\.header-inner > \.header-github svg\s*\{\s*display: none;[\s\S]*?\.header-inner > \.header-github::before/);
 });
@@ -2044,6 +2046,43 @@ test('every Agent Skills figure mounts through the shared lesson runtime', () =>
   }
 
   runtime.window.AIFSFigureRuntime.disposeRoot(root);
+});
+
+test('lesson figures never animate a color through CSS var() values', () => {
+  const manifest = buildFigureProviderManifest(path.resolve(__dirname, '..'), __dirname);
+  const runtime = loadFigureRuntime({ reducedMotion: true });
+  const context = { console, document: runtime.window.document, window: runtime.window };
+  for (const provider of manifest.providerOrder) {
+    const file = path.join(__dirname, provider);
+    vm.runInNewContext(fs.readFileSync(file, 'utf8'), context, { filename: file });
+  }
+
+  const colorAttributes = new Set(['fill', 'stroke', 'stop-color', 'color', 'flood-color', 'lighting-color']);
+  const offenders = new Set();
+  const visit = (figureId, node) => {
+    const attribute = node.getAttribute ? node.getAttribute('attributeName') : null;
+    if (colorAttributes.has(attribute)) {
+      const values = ['values', 'from', 'to'].map(name => node.getAttribute(name) || '').join(';');
+      if (values.includes('var(')) offenders.add(`${figureId} animates ${attribute} through var()`);
+    }
+    for (const child of node.children || []) visit(figureId, child);
+  };
+
+  const figures = Object.entries(runtime.window.LESSON_FIGURES);
+  let mounted = 0;
+  for (const [figureId, figure] of figures) {
+    const host = runtime.element('div');
+    try {
+      figure(host, {});
+    } catch {
+      continue;
+    }
+    mounted++;
+    visit(figureId, host);
+  }
+
+  assert.ok(mounted >= figures.length * 0.95, `only ${mounted} of ${figures.length} figures mounted in the test DOM`);
+  assert.deepEqual([...offenders], []);
 });
 
 test('figure manifest deterministically routes only providers needed by lesson figure IDs', () => {
