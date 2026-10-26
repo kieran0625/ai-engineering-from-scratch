@@ -9,7 +9,7 @@
 
 ## Learning Objectives
 
-- Compose the eleven prior lessons (tokenizer, data, pre-training, scaling, SFT, RLHF, DPO, CAI, eval, quantization, inference) into a single reproducible pipeline spec
+- Compose the twelve prior lessons (two tokenizer lessons, data, pre-training, scaling, SFT, RLHF, DPO, CAI, eval, quantization, inference) into a single reproducible pipeline spec
 - Define the artifact contract between stages: what each stage consumes, what it produces, and how the next stage verifies the input
 - Build an orchestrator that tracks experiments, hashes artifacts, and gates ship decisions on eval thresholds
 - Design the rollback plan: which artifacts are cheap to re-run, which are expensive, and what a corrupted checkpoint costs
@@ -249,7 +249,7 @@ This lesson produces `outputs/skill-llm-pipeline-reviewer.md`. Feed it a propose
 | Manifest | "The recipe file" | YAML or JSON describing pipeline version, seed, per-stage config, and gate thresholds — sufficient to replay a run |
 | Content-addressed | "By hash not name" | Artifacts stored by SHA-256 of their contents, so you can never confuse version A with version B |
 | Eval gate | "The ship criteria" | Numeric thresholds on benchmark metrics and safety scores that must pass before an artifact is marked shippable |
-| KL budget | "How far alignment drifted" | A cap on cumulative KL(policy || reference) across alignment stages, enforced as a gate |
+| KL budget | "How far alignment drifted" | A cap on cumulative $\mathrm{KL}(\text{policy} \Vert \text{reference})$ across alignment stages, enforced as a gate |
 | MFU | "How much of the GPU you used" | Model FLOPs Utilization — achieved FLOPs divided by theoretical peak. 40% is typical at 70B scale, 55% at 7B |
 | Rollback plan | "What we do when it breaks" | Pre-written set of actions per stage on failure: re-run, fall back, retrain with revised inputs |
 | Orchestrator | "The conductor" | The process that reads the manifest, dispatches stages, verifies hashes, halts on any contract violation |

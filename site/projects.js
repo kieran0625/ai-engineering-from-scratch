@@ -19,6 +19,14 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  function formatCount(value) {
+    return (Number(value) || 0).toLocaleString('en');
+  }
+
+  function countLabel(value, singular, plural) {
+    return formatCount(value) + ' ' + (Number(value) === 1 ? singular : plural);
+  }
+
   function readStore(key, fallback) {
     try {
       var raw = localStorage.getItem(key);
@@ -82,7 +90,8 @@
   }
 
   function projectHref(id, stageId) {
-    return 'project.html?id=' + encodeURIComponent(id) + (stageId ? '&stage=' + encodeURIComponent(stageId) : '');
+    var href = 'project?id=' + encodeURIComponent(id) + (stageId ? '&stage=' + encodeURIComponent(stageId) : '');
+    return window.AIFSRouteLinks ? window.AIFSRouteLinks.adaptHref(href) : href;
   }
 
   function totalHours(project) {
@@ -309,7 +318,7 @@
     var total = project.stages.length;
     var pct = total ? Math.round((done / total) * 100) : 0;
     return '<a class="pj-card is-ready" href="' + projectHref(project.id) + '">' +
-      '<div class="pj-card-top">' + sourceBadge(project) + '<span class="pj-card-meta">' + total + ' stages · ~' + totalHours(project) + 'h</span></div>' +
+      '<div class="pj-card-top">' + sourceBadge(project) + '<span class="pj-card-meta">' + countLabel(total, 'stage', 'stages') + ' · ~' + formatCount(totalHours(project)) + 'h</span></div>' +
       '<h3>' + esc(project.title) + '</h3>' +
       '<p>' + esc(project.tagline || project.summary || '') + '</p>' +
       languageChips(project.languages) +
@@ -370,11 +379,21 @@
       [DATA.planned.length, 'on the roadmap'],
       [DATA.levels.length, 'levels'],
       [community, 'from the community'],
-    ].map(function (s) { return '<div><strong>' + s[0] + '</strong><span>' + s[1] + '</span></div>'; }).join('');
+    ].map(function (s) { return '<div><strong>' + formatCount(s[0]) + '</strong><span>' + s[1] + '</span></div>'; }).join('');
 
-    var first = DATA.projects[0];
     var start = document.getElementById('pjStartLink');
-    if (first && start) start.href = projectHref(first.id);
+
+    var roleSelect = document.getElementById('pjRole');
+    var roleNote = document.getElementById('pjRoleNote');
+    var roles = DATA.roles || [];
+    var role = new URLSearchParams(window.location.search).get('role') || '';
+    if (!roles.some(function (r) { return r.id === role; })) role = '';
+    if (roleSelect) {
+      roleSelect.innerHTML = '<option value="">All roles</option>' + roles.map(function (r) {
+        return '<option value="' + esc(r.id) + '">' + esc(r.title) + '</option>';
+      }).join('');
+      roleSelect.value = role;
+    }
 
     var sources = [['all', 'All'], ['core', 'Core'], ['community', 'Community']];
     var current = readStore(SOURCE_KEY, 'all');
@@ -384,11 +403,24 @@
       filter.innerHTML = sources.map(function (s) {
         return '<button type="button" class="pj-chip' + (s[0] === current ? ' is-active' : '') + '" data-source="' + s[0] + '" aria-pressed="' + (s[0] === current) + '">' + s[1] + '</button>';
       }).join('');
-      var include = function (item) { return current === 'all' || item.source === current; };
+      var picked = roles.filter(function (r) { return r.id === role; })[0];
+      var include = function (item) {
+        if (picked && picked.projects.indexOf(item.id) === -1) return false;
+        return current === 'all' || item.source === current;
+      };
+      var first = DATA.projects.filter(function (p) { return !picked || picked.projects.indexOf(p.id) !== -1; })[0];
+      if (first && start) start.href = projectHref(first.id);
+      if (roleNote) {
+        roleNote.hidden = !picked;
+        roleNote.innerHTML = picked
+          ? 'These projects give proof for <strong>' + esc(picked.title) + '</strong>. Start with the lowest level and finish one project before you start the next. <a href="learning-paths.html#career-route-' + esc(picked.id) + '">See the lessons for this route</a>.'
+          : '';
+      }
       ladder.innerHTML = DATA.levels.map(function (level) {
         var ready = DATA.projects.filter(function (p) { return p.level === level.level && include(p); });
-        var planned = showPlanned.checked ? DATA.planned.filter(function (p) { return p.level === level.level && include(p); }) : [];
+        var planned = showPlanned.checked && !picked ? DATA.planned.filter(function (p) { return p.level === level.level && include(p); }) : [];
         var cards = ready.map(projectCard).join('') + planned.map(plannedCard).join('');
+        if (!cards && picked) return '';
         if (!cards) {
           cards = current === 'community'
             ? '<div class="pj-empty">No community projects at this level yet. <a href="#submit">Be the first.</a></div>'
@@ -398,6 +430,9 @@
           '<header class="pj-level-head"><div class="pj-level-n">' + level.level + '</div><div><h3>' + esc(level.name) + '</h3><p>' + esc(level.summary) + '</p></div></header>' +
           '<div class="pj-level-cards">' + cards + '</div></section>';
       }).join('');
+      if (picked && !ladder.innerHTML) {
+        ladder.innerHTML = '<div class="pj-empty">No ' + esc(current) + ' projects for this role yet. Choose All to see its projects.</div>';
+      }
     }
 
     filter.addEventListener('click', function (event) {
@@ -408,6 +443,16 @@
       draw();
     });
     showPlanned.addEventListener('change', draw);
+    if (roleSelect) {
+      roleSelect.addEventListener('change', function () {
+        role = roleSelect.value;
+        var url = new URL(window.location.href);
+        if (role) url.searchParams.set('role', role);
+        else url.searchParams.delete('role');
+        window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+        draw();
+      });
+    }
     draw();
   }
 
@@ -457,7 +502,7 @@
         '<div class="pj-eyebrow">LEVEL ' + project.level + ' · ' + esc(level.name.toUpperCase()) + '</div>' +
         '<h1>' + esc(project.title) + '</h1>' +
         '<p class="pj-lede">' + esc(project.summary || project.tagline || '') + '</p>' +
-        '<div class="pj-meta-row"><span>' + project.stages.length + ' stages</span><span>~' + totalHours(project) + ' hours</span><span>' + esc((project.languages || []).join(', ')) + '</span>' + sourceBadge(project) + '</div>' +
+        '<div class="pj-meta-row"><span>' + countLabel(project.stages.length, 'stage', 'stages') + '</span><span>~' + countLabel(totalHours(project), 'hour', 'hours') + '</span><span>' + esc((project.languages || []).join(', ')) + '</span>' + sourceBadge(project) + '</div>' +
         (skills ? '<div class="pj-skills">' + skills + '</div>' : '') +
       '</div><div class="pj-hero-side">' +
         (project.youWillBuild ? '<div class="pj-side-block"><div class="pj-eyebrow">YOU END UP WITH</div><p>' + esc(project.youWillBuild) + '</p></div>' : '') +

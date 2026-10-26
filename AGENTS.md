@@ -2,13 +2,13 @@
 
 Operating manual for contributors and AI agents touching this repo. Read it before opening a PR.
 
-The repo is a curriculum, not a SaaS app. The lessons are the product. Every rule below keeps 523 lessons coherent over time.
+The repo is a curriculum, not a SaaS app. The lessons are the product. Every rule below keeps 542 lessons coherent over time.
 
 ---
 
 ## Philosophy
 
-523 lessons. 20 phases. Every algorithm built from raw math before a single framework gets imported. You write backprop, the tokenizer, the attention mechanism, and the agent loop by hand in Python, TypeScript, Rust, or Julia. Then you run the same operation through the production library so the framework stops being a black box. The "Build It / Use It" split is the spine. Each lesson ships a reusable artifact you can plug into your daily workflow.
+542 lessons. 20 phases. Every algorithm built from raw math before a single framework gets imported. You write backprop, the tokenizer, the attention mechanism, and the agent loop by hand in Python, TypeScript, Rust, or Julia. Then you run the same operation through the production library so the framework stops being a black box. The "Build It / Use It" split is the spine. Each lesson ships a reusable artifact you can plug into your daily workflow.
 
 ---
 
@@ -48,13 +48,14 @@ scripts/                      # automation
 
 ## Hard rules
 
-1. **One commit per lesson directory.** Never batch multiple lessons into one commit. A 10-lesson PR has 10 commits.
+1. **Size commits by judgment.** Commit count is a judgment call, not one commit per lesson. A small fix gets 1 to 2 commits. A large change gets a few logical commits, each one a step a reviewer can read on its own.
 2. **Conventional commit subjects** ≤72 chars: `feat(phase-NN/MM): <slug>`. Body explains why, not what.
 3. **Mermaid or SVG only** for diagrams. No ASCII / Unicode box-drawing.
 4. **Every fenced code block needs a language tag.** Use `text`, `json`, `python`, `typescript`, `rust`, `julia`, `bash`, `console`, `mermaid`, `yaml` as appropriate.
 5. **Original implementations only.** Don't cite external curriculum repos in docs, code comments, or commit text. Cite RFCs, official specs, and academic papers when they are the canonical source.
 6. **Dependency allowlist** (see `Dependencies` below). Stdlib-first.
 7. **Never commit generated files**: `catalog.json` is gitignored, `site/data.js` is rebuilt by CI, `package-lock.json` is never tracked.
+8. **Answer every review bot thread.** CodeRabbit and Devin review each PR. Fix the finding or reply with the reason it does not apply, then resolve the thread.
 
 ---
 
@@ -115,8 +116,8 @@ Keep the distractors comparable in length to the correct option. When the correc
 ### Claude certification contract
 
 Certification lessons under `certifications/claude/lessons/` follow the same
-documentation, quiz, diagram, dependency, and one-commit-per-lesson rules as
-phase lessons. Every certification lesson needs a runnable main file and at
+documentation, quiz, diagram, dependency, and commit-size rules as phase
+lessons. Every certification lesson needs a runnable main file and at
 least five deterministic tests. Tracks reference stable lesson paths so one
 lesson can serve several credentials without duplication. Conceptual lessons
 still need practical work: use a scenario runner, policy scorer, artifact
@@ -199,7 +200,7 @@ pipeline as well.
 
 ### Manual contract
 
-A manual under `manuals/<id>/` explains one subject at one pinned version, built from offline captures and ranked sources. Read `manuals/AUTHORING.md` before writing one. `node scripts/audit_manuals.js` must report `TOTAL 0`: it checks section shape, prose limits, figure legibility, listing provenance, verbatim quotes, and capture drift. Commit one section per commit as `feat(manual/<id>): <section slug>`. Manuals stay outside the book and translation pipelines; their PDFs are release assets, never committed.
+A manual under `manuals/<id>/` explains one subject at one pinned version, built from offline captures and ranked sources. Read `manuals/AUTHORING.md` before writing one. `node scripts/audit_manuals.js` must report `TOTAL 0`: it checks section shape, prose limits, figure legibility, listing provenance, verbatim quotes, and capture drift. Size commits by judgment, such as one section with its figures and captures as `feat(manual/<id>): <section slug>`. Manuals stay outside the book and translation pipelines; their PDFs are release assets, never committed.
 
 ### code/
 
@@ -223,6 +224,8 @@ python3 scripts/audit_lessons.py
 python3 scripts/audit_certifications.py
 python3 scripts/check_readme_counts.py        # advisory — CI fixes on merge
 node --test site/test_manuals.js && node scripts/audit_manuals.js   # when manuals/ changes
+node site/build-cheatsheets.js --check && node site/build-cheatsheets.js --check-quality   # when cheatsheets/ or lessons change
+node site/build.js && node --test site/test_*.js   # when site/ changes; then git checkout -- site/data.js
 
 # For each lesson touched:
 cd phases/NN-phase/MM-lesson/code
@@ -259,6 +262,14 @@ CI gates (`.github/workflows/curriculum.yml`):
 | `glossary/terms.md`           | when introducing a term used by more than one lesson             |
 
 **Common bug**: if `grep -c 'tree/main/phases/NN-' site/data.js` is 0 after merge, the Phase NN README rows are plain text and missing the `[Title](phases/NN-...)` markdown link. `site/build.js` derives the URL from that link.
+
+### Social cards
+
+Every page shares its own 1200x630 card from `/og/<type>/<id>.png`, rendered by `api/og.js` with `lib/og-render.js`. The card text comes from the data that builds the page: `lesson-seo.json`, `certification-seo.json`, and `site/og-cards.json`, which `site/build.js` writes. Each card URL carries a content hash (`?v=`), so a changed title or count gets a new URL.
+
+- A new static page needs an entry in `PAGES` in `lib/og-cards.js` and an `og:image` tag for `/og/page/<id>.png`. The deploy step in `site/version-assets.js` writes the other image tags and the version.
+- The version also hashes `lib/og-render.js` and `lib/og-fonts/`, so a new layout or atlas gets new URLs without a manual bump.
+- `node scripts/build-og-fonts.js` rebuilds the glyph atlases with Chrome. Run it on a developer machine only, never in CI or the Vercel build.
 
 ---
 
@@ -308,7 +319,7 @@ mkdir -p phases/NN-phase-slug/MM-new-lesson/{docs,code/tests,outputs}
 
 # 8. Validate locally.
 
-# 9. Atomic commit:
+# 9. Commit (size commits by judgment):
 git add phases/NN-phase-slug/MM-new-lesson README.md ROADMAP.md
 git commit -m "feat(phase-NN/MM): add <slug>"
 git push -u origin <your-branch>
@@ -319,4 +330,4 @@ gh pr create --title "feat(phase-NN/MM): add <slug>" --body "<5-line summary>"
 
 ---
 
-Last reviewed: 2026-10-06.
+Last reviewed: 2026-10-23.
