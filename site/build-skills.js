@@ -29,6 +29,7 @@ const GROUPS = [
     when: 'Use these every session. They read and update your plan.',
     skills: {
       learn: { line: 'Teaches your next lesson section by section in the terminal, asks questions, and records what you finished.', say: ['/learn', 'teach me the next lesson'], writes: 'LEARNING.md' },
+      'lesson-screen': { line: 'Opens a screen in your browser next to the terminal. It shows the lesson figure for each step and traces the code with real values. It also builds a figure for your lesson while you learn, from a blueprint to a 3D model. After the quiz, it writes a practice page with a timed drill and spaced review. Without a local browser, it gives you the lesson page instead.', say: ['open the lesson screen', 'build a figure for this lesson'], writes: 'A .lesson-screen folder with each screen it showed' },
       'check-understanding': { line: 'Quizzes you on a phase and tells you which lessons to read again before you move on.', say: ['quiz me on phase 3', 'check my understanding'], writes: 'Nothing. It prints your score and what to review.' },
       'build-project': { line: 'Guides one stage of a course project per session. It gives hints only. You write the code and run the stage grader.', say: ['build a project', 'continue my project'], writes: 'PROJECTS-LEARNING.md' },
     },
@@ -50,6 +51,14 @@ const GROUPS = [
     skills: {
       'claude-certification': { line: 'Tutor for the four independent Claude certification tracks: choose a track, learn lesson by lesson, run labs, and take practice exams.', say: ['prepare for the Claude certification', 'resume my certification'], writes: 'CLAUDE-CERTIFICATION.md' },
       'mcpa-certification': { line: 'Tutor for the Model Context Protocol Associate exam: lessons, practical labs, and practice questions with feedback.', say: ['prepare for MCPA', 'MCPA practice exam'], writes: 'MCPA-CERTIFICATION.md' },
+    },
+  },
+  {
+    id: 'interview',
+    title: 'Interview practice',
+    when: 'Use this to practise for an AI engineering interview, one question or one incident at a time.',
+    skills: {
+      'interview-prep': { line: 'Asks one interview question or one incident scenario and waits for your answer. Then it grades the answer against the interview bank, asks follow-ups one at a time, and sends each gap to the lesson or manual section that teaches it.', say: ['mock interview', 'run an incident scenario'], writes: 'INTERVIEW-LEARNING.md' },
     },
   },
   {
@@ -354,7 +363,7 @@ python3 scripts/install_skills.py .skills --type all --dry-run</code></pre>
       });
     })();
   </script>
-  <script src="header.js?v=20261021a" defer></script>
+  <script src="header.js?v=20261103a" defer></script>
   <script src="dither.js?v=20261013a" defer></script>
   <script src="skills-demo.js?v=20261013a" defer></script>
 </body>

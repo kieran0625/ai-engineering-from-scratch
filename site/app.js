@@ -16,6 +16,7 @@
     populateCurriculumSummary();
     populateStats();
     renderPhases();
+    renderReleases();
     initStaggerIndex();
     initModal();
     initCopyButton();
@@ -139,6 +140,8 @@
     }
     var hasProgress = !!window.AIFSProgress;
     var html = '';
+    var nextMarked = false;
+    grid.classList.add('phase-cards');
     for (var i = 0; i < PHASES.length; i++) {
       var p = PHASES[i];
       var total = p.lessons.length;
@@ -151,13 +154,25 @@
       }
       var count = done > 0 ? done + ' / ' + total : total + (total === 1 ? ' lesson' : ' lessons');
       var statusClass = escapeHtml(String(p.status || 'planned').replace(/ /g, '-'));
-      var roman = toRoman(p.id);
       var num = String(p.id).padStart(2, '0');
-      html += '<div class="toc-row" data-phase="' + i + '" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Open Phase ' + num + ': ' + escapeHtml(p.name) + '">';
-      html += '<span class="toc-num" dir="ltr">' + roman + '.</span>';
-      html += '<div><span class="toc-status ' + statusClass + '"></span><span class="toc-name">' + escapeHtml(p.name) + '</span></div>';
-      html += '<span class="toc-meta">' + count + '</span>';
-      html += '<span class="toc-meta">' + num + '</span>';
+      var finished = total > 0 && done >= total;
+      var isNext = !finished && !nextMarked && total > 0;
+      if (isNext) nextMarked = true;
+      var action = 'Not started';
+      if (finished) action = 'Done';
+      else if (done > 0) action = 'Continue';
+      else if (isNext) action = 'Start here';
+      var percent = total > 0 ? Math.round(done / total * 100) : 0;
+      var cardClass = 'phase-card';
+      if (isNext) cardClass += ' is-next';
+      if (done > 0 && !finished) cardClass += ' is-started';
+      if (finished) cardClass += ' is-done';
+      html += '<div class="' + cardClass + '" data-phase="' + i + '" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Open Phase ' + num + ': ' + escapeHtml(p.name) + '">';
+      html += '<div class="phase-card-top"><span class="phase-card-num" dir="ltr">Phase ' + num + '</span><span class="toc-status ' + statusClass + '"></span></div>';
+      html += '<h3 class="phase-card-name">' + escapeHtml(p.name) + '</h3>';
+      html += '<p class="phase-card-desc">' + escapeHtml(p.desc || '') + '</p>';
+      html += '<div class="phase-card-bar" aria-hidden="true"><span style="width:' + percent + '%"></span></div>';
+      html += '<div class="phase-card-foot"><span class="phase-card-count">' + count + '</span><span class="phase-card-action">' + action + '</span></div>';
       html += '</div>';
     }
     grid.innerHTML = html;
@@ -179,6 +194,35 @@
         newRows[r].classList.add('in-view', 'visible');
       }
     }
+  }
+
+  function releaseItemHtml(release) {
+    return '<li class="whats-new-item">'
+      + '<time class="whats-new-date" datetime="' + escapeHtml(release.date) + '">' + escapeHtml(release.date) + '</time>'
+      + '<a href="' + escapeHtml(release.url) + '" target="_blank" rel="noopener">' + escapeHtml(release.title) + '</a>'
+      + (release.summary ? '<p class="whats-new-summary">' + escapeHtml(release.summary) + '</p>' : '')
+      + '</li>';
+  }
+
+  function renderReleases() {
+    var section = document.getElementById('whats-new');
+    var list = document.getElementById('whatsNewList');
+    if (!section || !list || !window.fetch) return;
+    fetch('releases.json')
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (data) {
+        var releases = data && Array.isArray(data.releases) ? data.releases : [];
+        var html = '';
+        for (var i = 0; i < releases.length; i++) {
+          var release = releases[i];
+          if (!release || !/^https:\/\/github\.com\//.test(release.url || '')) continue;
+          html += releaseItemHtml(release);
+        }
+        if (!html) return;
+        list.innerHTML = html;
+        section.hidden = false;
+      })
+      .catch(function () {});
   }
 
   function toRoman(num) {
@@ -281,12 +325,19 @@
 
   var currentPhaseIdx = -1;
   var modalReturnFocus = null;
+  var modalReturnPhase = null;
+
+  function phaseRow(idx) {
+    return document.querySelector('.toc-row[data-phase="' + idx + '"], .phase-card[data-phase="' + idx + '"]');
+  }
 
   function openModal(idx, fromKeyboard) {
     var p = PHASES[idx];
     if (!p) return;
     currentPhaseIdx = idx;
     modalReturnFocus = document.activeElement;
+    var origin = modalReturnFocus && modalReturnFocus.closest ? modalReturnFocus.closest('.toc-row, .phase-card') : null;
+    modalReturnPhase = origin ? origin.getAttribute('data-phase') : null;
 
     document.getElementById('modalPhaseNum').textContent = 'PHASE ' + String(p.id).padStart(2, '0');
     document.getElementById('modalTitle').textContent = p.name;
@@ -411,7 +462,11 @@
   if (window.AIFSProgress) {
     window.AIFSProgress.onChange(function () {
       if (currentPhaseIdx >= 0 && PHASES[currentPhaseIdx]) {
+        var focused = document.activeElement;
+        var focusedPath = focused && focused.classList && focused.classList.contains('modal-lesson-toggle') ? focused.getAttribute('data-path') : '';
         renderModalLessons(PHASES[currentPhaseIdx]);
+        var again = focusedPath ? document.querySelector('#modalLessons .modal-lesson-toggle[data-path="' + focusedPath + '"]') : null;
+        if (again) again.focus();
       }
       populateStats();
       renderPhases();
@@ -425,10 +480,12 @@
     overlay.classList.remove('open');
     overlay.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
-    if (modalReturnFocus && modalReturnFocus.isConnected && typeof modalReturnFocus.focus === 'function') {
-      modalReturnFocus.focus();
-    }
+    var returnTo = modalReturnFocus && modalReturnFocus.isConnected ? modalReturnFocus : null;
+    if (!returnTo && modalReturnPhase !== null) returnTo = phaseRow(modalReturnPhase);
+    if (returnTo && typeof returnTo.focus === 'function') returnTo.focus();
     modalReturnFocus = null;
+    modalReturnPhase = null;
+    currentPhaseIdx = -1;
     requestAnimationFrame(function () {
       overlay.classList.remove('no-motion');
     });
